@@ -1,7 +1,8 @@
 const express = require('express')
 const mongoose = require('mongoose');
-const User = require("./models/user.model.js");
 const usersRoute = require('./routes/user.route.js');
+const postRoutes = require('./routes/post.route.js');
+const restaurantRoutes = require('./routes/restaurant.route.js');
 const app = express()
 
 // middleware
@@ -11,6 +12,8 @@ app.use(express.urlencoded({extended: false}));
 
 // routes
 app.use("/api/users", usersRoute);
+app.use('/api/posts', postRoutes);
+app.use('/api/restaurants', restaurantRoutes);
 
 
 app.get('/', (req, res)=>{

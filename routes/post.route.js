@@ -1,13 +1,13 @@
 const express = require("express");
 const router = express.Router();
-const User = require('../models/user.model.js')
-const {getUsers, getUser, updateUser, deleteUser, createUser, followUser, unfollowUser, acceptFollow, rejectFollow} = require ('../controllers/user.controller.js')
+
+const {createPost, deletePost, updatePost} = require ('../controllers/post.controller.js')
 
 router.get('/', getUsers);
 router.get('/:id', getUser);
-router.put('/:id', updateUser);
-router.delete('/:id', deleteUser);
-router.post("/", createUser);
+router.put('/:id', updatePost);
+router.delete('/:id', deletePost);
+router.post("/", createPost);
 router.put("/follow/:id", followUser);
 router.put("/unfollow/:id", unfollowUser);
 router.put("/acceptFollow/:id", acceptFollow);
