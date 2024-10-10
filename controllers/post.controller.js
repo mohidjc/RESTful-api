@@ -50,7 +50,7 @@ const updatePost = async (req, res) => {
         { new: true }
       );
       if (!post) {
-        return res.status(404).json({ message: "Post not found or you're not authorized" });
+        return res.status(404).json({ message: "Post not found or you're not authorised" });
       }
       res.status(200).json(post);
     } catch (error) {
@@ -58,9 +58,36 @@ const updatePost = async (req, res) => {
     }
   };
 
+
+  const getUserPosts = async (req, res) => {
+    try {
+        const { id } = req.params;  // The ID of the user whose posts we want to fetch
+        const targetUser = await User.findById(id);
+
+        if (!targetUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const isFollowing = req.user.following.includes(targetUser._id);
+        const isProfilePublic = !targetUser.isPrivate;
+
+        // If the profile is public or the current user is following the user
+        if (isProfilePublic || isFollowing) {
+            const posts = await Post.find({ user: targetUser._id }).populate('user restaurant');
+            return res.status(200).json(posts);
+        }
+
+        return res.status(403).json({ message: "You cannot view this user's posts" });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+
 module.exports = {
     followingPosts,
     createPost,
     deletePost,
-    updatePost
+    updatePost,
+    getUserPosts
 }

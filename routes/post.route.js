@@ -1,16 +1,13 @@
 const express = require("express");
 const router = express.Router();
+const authMiddleware = require('../middlewares/authMiddleware');
 
-const {createPost, deletePost, updatePost} = require ('../controllers/post.controller.js')
+const {createPost, deletePost, updatePost, getUserPosts} = require ('../controllers/post.controller.js')
 
-router.get('/', getUsers);
-router.get('/:id', getUser);
-router.put('/:id', updatePost);
-router.delete('/:id', deletePost);
-router.post("/", createPost);
-router.put("/follow/:id", followUser);
-router.put("/unfollow/:id", unfollowUser);
-router.put("/acceptFollow/:id", acceptFollow);
-router.put("/rejectFollow/:id", rejectFollow);
+router.get('/:id',authMiddleware, getUserPosts);
+router.put('/:id',authMiddleware, updatePost);
+router.delete('/:id',authMiddleware, deletePost);
+router.post("/",authMiddleware, createPost);
+
 
 module.exports = router;

@@ -50,11 +50,40 @@ const deleteUser = async (req, res)=>{
 
 const createUser = async (req, res)=>{
     try{
-        const user = await User.create(req.body);
-        res.status(201).json(user);
+        const { username, email, password } = req.body;
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const newUser = new User({ username, email, password: hashedPassword });
+        await newUser.save();
+        res.status(201).json(newUser);
     }catch(error){
         res.status(500).json({message: error.message});
     }
+}
+
+const LogInUser = async (req, res)=>{
+    try {
+        const { username, password } = req.body;
+        const user = await User.findOne({ username });
+
+        if (!user) {
+          return res.status(400).json({ error: 'User not found' });
+        }
+
+        // Compare the provided password with the hashed password in the database
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+          return res.status(400).json({ error: 'Invalid credentials' });
+        }
+        // Generate a JWT token
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    
+        // Send the token back to the client
+        res.json({ token });
+    
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Server error, please try again later' });
+      }
 }
 
 const followUser = async (req, res)=>{
@@ -187,5 +216,6 @@ module.exports = {
     followUser,
     unfollowUser,
     acceptFollow,
-    rejectFollow
+    rejectFollow,
+    LogInUser,
 }
