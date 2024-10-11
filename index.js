@@ -4,15 +4,12 @@ const mongoose = require('mongoose');
 const usersRoute = require('./routes/user.route.js');
 const postRoutes = require('./routes/post.route.js');
 const restaurantRoutes = require('./routes/restaurant.route.js');
-// const restaurantRoutes = require('./routes/restaurant.route.js');
+const bodyParserMiddleware = require('./middleware/bodyParserMiddleware');
 const app = express()
+bodyParserMiddleware(app);
 
 const PORT = process.env.PORT;
 const MONGODB_URI = process.env.MONGODB_URI;
-
-// middleware
-app.use(express.json());
-app.use(express.urlencoded({extended: false}));
 
 
 // routes
