@@ -7,7 +7,7 @@ const {createPost, deletePost, updatePost, getUserPosts, likePost, unlikePost, a
 router.get('/:id',authMiddleware, getUserPosts);
 router.put('/:id',authMiddleware, updatePost);
 router.delete('/:id',authMiddleware, deletePost);
-router.post("/",authMiddleware, createPost);
+router.post("/create",authMiddleware, createPost);
 router.put('/:id/like',authMiddleware, likePost);
 router.put('/:id/unlike',authMiddleware, unlikePost);
 router.post('/:id/comments',authMiddleware, addComment);

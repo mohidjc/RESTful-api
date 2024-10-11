@@ -21,7 +21,7 @@ const UserSchema = mongoose.Schema({
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],  // People this user is following
     isPrivate: { type: Boolean, default: false }, // True if the profile is private
     pendingRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Users requesting to follow
-  
+    favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Restaurant' }],
     createdAt: { type: Date, default: Date.now }
 }
 );
