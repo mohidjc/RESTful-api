@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express')
 const mongoose = require('mongoose');
 const usersRoute = require('./routes/user.route.js');
@@ -5,6 +6,9 @@ const postRoutes = require('./routes/post.route.js');
 const restaurantRoutes = require('./routes/restaurant.route.js');
 // const restaurantRoutes = require('./routes/restaurant.route.js');
 const app = express()
+
+const PORT = process.env.PORT;
+const MONGODB_URI = process.env.MONGODB_URI;
 
 // middleware
 app.use(express.json());
@@ -14,8 +18,8 @@ app.use(express.urlencoded({extended: false}));
 // routes
 app.use("/api/users", usersRoute);
 app.use('/api/posts', postRoutes);
-app.use('/api/restaurant', restaurantRoutes);
-// app.use('/api/restaurants', restaurantRoutes);
+app.use('/api/restaurants', restaurantRoutes);
+
 
 
 app.get('/', (req, res)=>{
@@ -23,10 +27,10 @@ app.get('/', (req, res)=>{
 });
 
 
-mongoose.connect("mongodb+srv://mohidjavedch:FLqtloOx6VpPxSlR@backenddb.earnplx.mongodb.net/Node-API?retryWrites=true&w=majority&appName=BackendDB")
+mongoose.connect(MONGODB_URI)
 .then(()=>{
     console.log("connected to database!")
-    app.listen(3000, () => {
+    app.listen(PORT, () => {
         console.log('server is running on port 3000');
     });
 })
