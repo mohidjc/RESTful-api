@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config(); // need to npm install dotenv
 const express = require('express')
 const mongoose = require('mongoose');
 const usersRoute = require('./routes/user.route.js');
