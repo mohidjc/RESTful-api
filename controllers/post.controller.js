@@ -73,7 +73,9 @@ const getUserPosts = async (req, res) => {
 
         // If the profile is public or the current user is following the user
         if (isProfilePublic || isFollowing) {
-            const posts = await Post.find({ user: targetUser._id }).populate('user restaurant');
+            const posts = await Post.find({ user: targetUser._id })
+            .populate('user restaurant')
+            .populate('comments.user');;
             return res.status(200).json(posts);
         }
 
