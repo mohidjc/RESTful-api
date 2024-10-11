@@ -86,6 +86,31 @@ const LogInUser = async (req, res)=>{
       }
 }
 
+
+const searchUsers = async (req, res) => {
+    try {
+      const { username } = req.query;
+      if (!username) {
+        return res.status(400).json({ message: 'Please provide a username to search' });
+      }
+  
+      // Use a regular expression to search for similar usernames (partial match)
+      const regex = new RegExp(username, 'i'); // 'i' makes the search case-insensitive
+  
+      // Find users where the username contains the search term
+      const users = await User.find({ username: regex });
+
+      if (users.length === 0) {
+        return res.status(404).json({ message: 'No users found matching your search criteria' });
+      }
+      res.status(200).json(users);
+    } catch (error) {
+      // Handle any errors
+      res.status(500).json({ message: error.message });
+    }
+  };
+  
+
 const followUser = async (req, res)=>{
     try {
         const currentUser = await User.findById(req.user.id);
@@ -218,4 +243,5 @@ module.exports = {
     acceptFollow,
     rejectFollow,
     LogInUser,
+    searchUsers
 }
