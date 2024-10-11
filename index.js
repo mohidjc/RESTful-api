@@ -4,7 +4,9 @@ const mongoose = require('mongoose');
 const usersRoute = require('./routes/user.route.js');
 const postRoutes = require('./routes/post.route.js');
 const restaurantRoutes = require('./routes/restaurant.route.js');
-const bodyParserMiddleware = require('./middleware/bodyParserMiddleware');
+const bodyParserMiddleware = require('./middlewares/bodyParserMiddleware.js');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./swagger');
 const app = express()
 bodyParserMiddleware(app);
 
@@ -13,6 +15,7 @@ const MONGODB_URI = process.env.MONGODB_URI;
 
 
 // routes
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use("/api/users", usersRoute);
 app.use('/api/posts', postRoutes);
 app.use('/api/restaurants', restaurantRoutes);

@@ -1,4 +1,55 @@
 const User = require("../models/user.model.js")
+const Post = require("../models/post.model.js")
+
+/**
+ * @swagger
+ * tags:
+ *   name: Users
+ *   description: User management and operations
+ */
+
+/**
+ * @swagger
+ * /users/user/{id}:
+ *   get:
+ *     summary: Get a user by ID
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: User ID
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: User fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 username:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                 following:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                 followers:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                 isPrivate:
+ *                   type: boolean
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Error fetching user
+ */
 const getUser = async (req, res)=>{
     try{
         const { id } = req.params;
@@ -10,6 +61,40 @@ const getUser = async (req, res)=>{
     }
 }
 
+/**
+ * @swagger
+ * /users/update/{id}:
+ *   put:
+ *     summary: Update a user
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: User ID
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: User updated successfully
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
 const updateUser = async (req, res)=>{
     try{
         const { id } = req.params;
@@ -25,6 +110,27 @@ const updateUser = async (req, res)=>{
     }
 }
 
+/**
+ * @swagger
+ * /users/delete/{id}:
+ *   delete:
+ *     summary: Delete a user
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: User ID
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: User deleted successfully
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
 const deleteUser = async (req, res)=>{
     try{
         const { id } = req.params;
@@ -39,6 +145,31 @@ const deleteUser = async (req, res)=>{
     }
 }
 
+/**
+ * @swagger
+ * /users/signUp:
+ *   post:
+ *     summary: Create a new user
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: User created successfully
+ *       500:
+ *         description: Server error
+ */
 const createUser = async (req, res)=>{
     try{
         const { username, email, password } = req.body;
@@ -51,6 +182,39 @@ const createUser = async (req, res)=>{
     }
 }
 
+
+/**
+ * @swagger
+ * /users/login:
+ *   post:
+ *     summary: Log in a user
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: User logged in successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *       400:
+ *         description: Invalid credentials
+ *       500:
+ *         description: Server error
+ */
 const LogInUser = async (req, res)=>{
     try {
         const { username, password } = req.body;
@@ -77,7 +241,90 @@ const LogInUser = async (req, res)=>{
       }
 }
 
+/**
+ * @swagger
+ * /users/{id}/posts:
+ *   get:
+ *     summary: Get posts of a user
+ *     description: Retrieve posts of a specific user if the profile is public or the current user follows them.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the user.
+ *     responses:
+ *       200:
+ *         description: A list of the user's posts.
+ *       403:
+ *         description: Access to posts is restricted.
+ *       404:
+ *         description: User not found.
+ *       500:
+ *         description: Internal server error.
+ */
+ const getUserPosts = async (req, res) => {
+  try {
+      const { id } = req.params;  // The ID of the user whose posts we want to fetch
+      const targetUser = await User.findById(id);
 
+      if (!targetUser) {
+          return res.status(404).json({ message: "User not found" });
+      }
+
+      const isFollowing = req.user.following.includes(targetUser._id);
+      const isProfilePublic = !targetUser.isPrivate;
+
+      // If the profile is public or the current user is following the user
+      if (isProfilePublic || isFollowing) {
+          const posts = await Post.find({ user: targetUser._id })
+          .populate('user restaurant')
+          .populate('comments.user');;
+          return res.status(200).json(posts);
+      }
+
+      return res.status(403).json({ message: "You cannot view this user's posts" });
+  } catch (error) {
+      res.status(500).json({ message: error.message });
+  }
+};
+
+
+/**
+ * @swagger
+ * /users/search:
+ *   get:
+ *     summary: Search for users by username
+ *     tags: [Users]
+ *     parameters:
+ *       - in: query
+ *         name: username
+ *         required: true
+ *         description: Username to search for
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of matching users
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   username:
+ *                     type: string
+ *                   email:
+ *                     type: string
+ *       404:
+ *         description: No users found
+ *       500:
+ *         description: Server error
+ */
 const searchUsers = async (req, res) => {
     try {
       const { username } = req.query;
@@ -102,6 +349,29 @@ const searchUsers = async (req, res) => {
   };
   
 
+  /**
+ * @swagger
+ * /users/follow/{id}:
+ *   post:
+ *     summary: Follow a user
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: User ID to follow
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Follow request sent successfully
+ *       404:
+ *         description: User not found
+ *       400:
+ *         description: Already following or private account
+ *       500:
+ *         description: Server error
+ */
 const followUser = async (req, res)=>{
     try {
         const currentUser = await User.findById(req.user.id);
@@ -136,6 +406,29 @@ const followUser = async (req, res)=>{
       }
 }
 
+/**
+ * @swagger
+ * /users/acceptFollow/{id}:
+ *   post:
+ *     summary: Accept a follow request
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Follower's User ID
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Follow request accepted successfully
+ *       404:
+ *         description: User not found
+ *       400:
+ *         description: No follow request from this user
+ *       500:
+ *         description: Server error
+ */
 const acceptFollow = async (req, res)=>{
     try {
         const currentUser = await User.findById(req.user.id);
@@ -166,6 +459,29 @@ const acceptFollow = async (req, res)=>{
       }
 }
 
+/**
+ * @swagger
+ * /users/rejectFollow/{id}:
+ *   delete:
+ *     summary: Reject a follow request
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Follower's User ID
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Follow request rejected successfully
+ *       404:
+ *         description: User not found
+ *       400:
+ *         description: No follow request from this user
+ *       500:
+ *         description: Server error
+ */
 const rejectFollow = async (req, res)=>{
     try {
         const currentUser = await User.findById(req.user.id);
@@ -192,7 +508,30 @@ const rejectFollow = async (req, res)=>{
 }
 
 
-const unfollowUser = async (req, res)=>{
+
+/**
+ * @swagger
+ * /users/unfollow/{id}:
+ *   delete:
+ *     summary: Unfollow a user
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: User ID to unfollow
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Unfollowed successfully
+ *       404:
+ *         description: User not found
+ *       400:
+ *         description: Not following this user
+ *       500:
+ *         description: Server error
+ */const unfollowUser = async (req, res)=>{
     try {
         const currentUser = await User.findById(req.user.id);
         const userToUnfollow = await User.findById(req.params.id);
@@ -233,5 +572,6 @@ module.exports = {
     acceptFollow,
     rejectFollow,
     LogInUser,
-    searchUsers
+    searchUsers,
+    getUserPosts
 }

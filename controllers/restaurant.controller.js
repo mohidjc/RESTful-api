@@ -2,6 +2,72 @@ const User = require("../models/user.model.js")
 const Post = require("../models/post.model.js")
 const Restaurant = require("../models/Restaurant.model.js")
 
+/**
+ * @swagger
+ * tags:
+ *   name: Restaurants
+ *   description: Restaurant management and operations
+ */
+
+
+/**
+ * @swagger
+ * /restaurants/{restaurantId}:
+ *   get:
+ *     summary: Get a restaurant by ID
+ *     tags: [Restaurants]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Restaurant ID
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Restaurant fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 name:
+ *                   type: string
+ *                 location:
+ *                   type: string
+ *                 phoneNumber:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                 website:
+ *                   type: string
+ *                 hours:
+ *                   type: string
+ *                 type:
+ *                   type: string
+ *                 rating:
+ *                   type: number
+ *                 reviews:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       user:
+ *                         type: string
+ *                       rating:
+ *                         type: number
+ *                       comment:
+ *                         type: string
+ *                       createdAt:
+ *                         type: string
+ *       404:
+ *         description: Restaurant not found
+ *       500:
+ *         description: Error fetching restaurant
+ */
+
 const getRestaurant = async (req, res)=>{
     try {
         const restaurantId = req.params.id;
@@ -38,7 +104,39 @@ const getRestaurant = async (req, res)=>{
       }
 }
 
-
+/**
+ * @swagger
+ * /restaurants/create:
+ *   post:
+ *     summary: Create a new restaurant
+ *     tags: [Restaurants]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               location:
+ *                 type: string
+ *               phoneNumber:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               website:
+ *                 type: string
+ *               hours:
+ *                 type: string
+ *               type:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Restaurant created successfully
+ *       500:
+ *         description: Server error
+ */
 const createRestaurant = async (req, res) => {
     try {
       const { name, location, phoneNumber, email, website, hours, type, rating, reviews } = req.body;
@@ -60,6 +158,27 @@ const createRestaurant = async (req, res) => {
     }
   };
 
+/**
+ * @swagger
+ * /restaurants/search:
+ *   get:
+ *     summary: Search restaurants by type
+ *     tags: [Restaurants]
+ *     parameters:
+ *       - in: query
+ *         name: type
+ *         required: false
+ *         description: Type of restaurant to search for
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of matching restaurants
+ *       404:
+ *         description: No restaurants found
+ *       500:
+ *         description: Server error
+ */
 const searchRestaurants = async (req, res) => {
     try {
       const { type } = req.query;
@@ -74,7 +193,40 @@ const searchRestaurants = async (req, res) => {
     }
 };
 
-
+/**
+ * @swagger
+ * /restaurants/{restaurantId}/reviews:
+ *   post:
+ *     summary: Create a review for a restaurant
+ *     tags: [Restaurants]
+ *     parameters:
+ *       - in: path
+ *         name: restaurantId
+ *         required: true
+ *         description: Restaurant ID
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               rating:
+ *                 type: number
+ *               comment:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Review created successfully
+ *       404:
+ *         description: Restaurant not found
+ *       400:
+ *         description: User has already reviewed this restaurant
+ *       500:
+ *         description: Server error
+ */
 const createReview = async (req, res) => {
   try {
     const { restaurantId } = req.params; 
@@ -111,6 +263,34 @@ const createReview = async (req, res) => {
   }
 }; 
 
+/**
+ * @swagger
+ * /restaurants/{restaurantId}/reviews/{reviewId}:
+ *   delete:
+ *     summary: Delete a review for a restaurant
+ *     tags: [Restaurants]
+ *     parameters:
+ *       - in: path
+ *         name: restaurantId
+ *         required: true
+ *         description: Restaurant ID
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: reviewId
+ *         required: true
+ *         description: Review ID
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Review deleted successfully
+ *       404:
+ *         description: Restaurant or review not found
+ *       500:
+ *         description: Server error
+ */
+
 const deleteReview = async (req, res) => {
   try {
     const { restaurantId, reviewId } = req.params; 
@@ -143,6 +323,29 @@ const deleteReview = async (req, res) => {
   }
 };
 
+/**
+ * @swagger
+ * /restaurants/favorites/{restaurantId}:
+ *   post:
+ *     summary: Add a restaurant to user favorites
+ *     tags: [Restaurants]
+ *     parameters:
+ *       - in: path
+ *         name: restaurantId
+ *         required: true
+ *         description: Restaurant ID
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Restaurant added to favorites
+ *       404:
+ *         description: Restaurant or user not found
+ *       400:
+ *         description: Restaurant is already in favorites
+ *       500:
+ *         description: Server error
+ */
 const addRestaurantToFavorites = async (req, res) => {
     try {
         const userId = req.user.id; 
@@ -175,6 +378,27 @@ const addRestaurantToFavorites = async (req, res) => {
     }
 };
 
+/**
+ * @swagger
+ * /restaurants/favorites/{restaurantId}:
+ *   delete:
+ *     summary: Remove a restaurant from user favorites
+ *     tags: [Restaurants]
+ *     parameters:
+ *       - in: path
+ *         name: restaurantId
+ *         required: true
+ *         description: Restaurant ID
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Restaurant removed from favorites
+ *       404:
+ *         description: Restaurant or user not found
+ *       500:
+ *         description: Server error
+ */
 const removeFromFavorites = async (req, res) => {
     try {
         const currentUserId = req.user.id;
@@ -202,7 +426,20 @@ const removeFromFavorites = async (req, res) => {
     }
 };
 
-
+/**
+ * @swagger
+ * /restaurants/favorites:
+ *   get:
+ *     summary: Get user's favorite restaurants
+ *     tags: [Restaurants]
+ *     responses:
+ *       200:
+ *         description: List of favorite restaurants
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
 const getUserFavorites = async (req, res) => {
     try {
         const userId = req.user.id;

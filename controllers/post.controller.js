@@ -1,17 +1,27 @@
 const User = require("../models/user.model.js")
 const Post = require("../models/post.model.js")
 
-const followingPosts = async (req, res)=>{
-    try {
-        const currentUser = await User.findById(req.user.id).populate('following');
-        const posts = await Post.find({ user: { $in: currentUser.following } }).populate('user restaurant');
-        res.json(posts);
-      } catch (err) {
-        res.status(500).json({ error: err.message });
-      } 
-}
-
-
+/**
+ * @swagger
+ * /posts/delete/{id}:
+ *   delete:
+ *     summary: Delete a post
+ *     description: Delete a post by its ID if it exists.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the post to delete.
+ *     responses:
+ *       200:
+ *         description: Post deleted successfully.
+ *       404:
+ *         description: Post not found.
+ *       500:
+ *         description: Internal server error.
+ */
 const deletePost = async (req, res)=>{
     try{
         const { id } = req.params;
@@ -26,7 +36,24 @@ const deletePost = async (req, res)=>{
     }
 }
 
-
+/**
+ * @swagger
+ * /posts/create:
+ *   post:
+ *     summary: Create a new post
+ *     description: Create a new post for the authenticated user.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Post'
+ *     responses:
+ *       201:
+ *         description: Post created successfully.
+ *       500:
+ *         description: Internal server error.
+ */
 const createPost = async (req, res) => {
     try {
       const post = new Post({
@@ -40,7 +67,33 @@ const createPost = async (req, res) => {
     }
 }
 
-
+/**
+ * @swagger
+ * /posts/update/{id}:
+ *   put:
+ *     summary: Update a post
+ *     description: Update a post by its ID if it belongs to the current user.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the post to update.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Post'
+ *     responses:
+ *       200:
+ *         description: Post updated successfully.
+ *       404:
+ *         description: Post not found or unauthorized.
+ *       500:
+ *         description: Internal server error.
+ */
 const updatePost = async (req, res) => {
     try {
       const { id } = req.params;
@@ -59,32 +112,29 @@ const updatePost = async (req, res) => {
   };
 
 
-const getUserPosts = async (req, res) => {
-    try {
-        const { id } = req.params;  // The ID of the user whose posts we want to fetch
-        const targetUser = await User.findById(id);
-
-        if (!targetUser) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        const isFollowing = req.user.following.includes(targetUser._id);
-        const isProfilePublic = !targetUser.isPrivate;
-
-        // If the profile is public or the current user is following the user
-        if (isProfilePublic || isFollowing) {
-            const posts = await Post.find({ user: targetUser._id })
-            .populate('user restaurant')
-            .populate('comments.user');;
-            return res.status(200).json(posts);
-        }
-
-        return res.status(403).json({ message: "You cannot view this user's posts" });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
+/**
+ * @swagger
+ * /posts/{id}/like:
+ *   post:
+ *     summary: Like a post
+ *     description: Like a post by its ID.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the post to like.
+ *     responses:
+ *       200:
+ *         description: Post liked successfully.
+ *       400:
+ *         description: Already liked the post.
+ *       404:
+ *         description: Post not found.
+ *       500:
+ *         description: Internal server error.
+ */
 const likePost = async (req, res) => {
     try {
         const { id } = req.params; // ID of the post to like
@@ -108,6 +158,30 @@ const likePost = async (req, res) => {
     }
 };
 
+
+/**
+ * @swagger
+ * /posts/{id}/unlike:
+ *   post:
+ *     summary: Unlike a post
+ *     description: Unlike a post by its ID.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the post to unlike.
+ *     responses:
+ *       200:
+ *         description: Post unliked successfully.
+ *       400:
+ *         description: You have not liked this post.
+ *       404:
+ *         description: Post not found.
+ *       500:
+ *         description: Internal server error.
+ */
 const unlikePost = async (req, res) => {
     try {
         const { id } = req.params; // ID of the post to unlike
@@ -132,6 +206,38 @@ const unlikePost = async (req, res) => {
     }
 };
 
+
+/**
+ * @swagger
+ * /posts/{id}/comment:
+ *   post:
+ *     summary: Add a comment to a post
+ *     description: Add a comment to a post by its ID.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the post to comment on.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               text:
+ *                 type: string
+ *                 description: The text of the comment.
+ *     responses:
+ *       201:
+ *         description: Comment added successfully.
+ *       404:
+ *         description: Post not found.
+ *       500:
+ *         description: Internal server error.
+ */
 const addComment = async (req, res) => {
     try {
         const { id } = req.params; // ID of the post to comment on
@@ -157,6 +263,36 @@ const addComment = async (req, res) => {
     }
 };
 
+
+/**
+ * @swagger
+ * /posts/{postId}/comment/{commentId}:
+ *   delete:
+ *     summary: Delete a comment
+ *     description: Delete a comment by its ID if it belongs to the current user or the post owner.
+ *     parameters:
+ *       - in: path
+ *         name: postId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the post.
+ *       - in: path
+ *         name: commentId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the comment to delete.
+ *     responses:
+ *       200:
+ *         description: Comment deleted successfully.
+ *       403:
+ *         description: Unauthorized to delete this comment.
+ *       404:
+ *         description: Post or comment not found.
+ *       500:
+ *         description: Internal server error.
+ */
 const deleteComment = async (req, res) => {
     try {
         const { postId, commentId } = req.params; // IDs of the post and comment
@@ -186,16 +322,10 @@ const deleteComment = async (req, res) => {
     }
 };
 
-
-
-
-
 module.exports = {
-    followingPosts,
     createPost,
     deletePost,
     updatePost,
-    getUserPosts,
     likePost,
     unlikePost,
     addComment,
