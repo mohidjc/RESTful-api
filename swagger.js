@@ -258,7 +258,7 @@ const swaggerDefinition = {
   
   servers: [
     {
-      url: 'http://localhost:3001', // The URL of your API
+      url: 'http://localhost:3000', // The URL of your API
       description: 'Local server',
     },
   ],
@@ -272,5 +272,4 @@ const options = {
 
 // Initialize swagger-jsdoc
 const swaggerSpec = swaggerJSDoc(options);
-
 module.exports = swaggerSpec;
